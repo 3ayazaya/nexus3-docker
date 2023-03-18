@@ -1,0 +1,32 @@
+
+version: '3'
+
+dotenv: ['.env']
+
+tasks:
+  build:
+    desc: "Собираем образы и заливаем в регистри"
+    cmds:
+      - docker-compose -f docker-compose-dev.yaml build
+      - docker pull sonatype/nexus3
+      - docker tag nexus3-docker-nginx $CONTAINER_REGISTRY_URL/nexus3-nginx-proxy
+      - docker tag sonatype/nexus3 $CONTAINER_REGISTRY_URL/nexus3
+      - docker push $CONTAINER_REGISTRY_URL/nexus3-nginx-proxy
+      - docker push $CONTAINER_REGISTRY_URL/nexus3
+      - >
+        openssl
+        req
+        -nodes
+        -new
+        -x509
+        -keyout ./nginx/etc/conf.d/privkey.pem
+        -out ./nginx/etc/conf.d/cert.pem
+        -subj "/C=RU/ST=MSK/L=MSK/O=$NEXUS_NGINX_SERVER_NAME/OU=DevOps/CN=$NEXUS_NGINX_SERVER_NAME/emailAddress=admin@$NEXUS_NGINX_SERVER_NAME"
+  run-dev:
+    desc: "Запуск dev среды"
+    cmds:
+      - docker-compose -f docker-compose-dev.yaml up
+  run-prod:
+    desc: "Запуск prod среды"
+    cmds:
+      - docker-compose -f docker-compose.yaml up -d

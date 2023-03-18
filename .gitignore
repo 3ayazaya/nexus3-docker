@@ -1,0 +1,5 @@
+.env_dev
+cert.pem
+privkey.pem
+data/
+nginx/var/log/
